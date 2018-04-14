@@ -7,7 +7,7 @@ var async = require('async');
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
-  const api_key = 'RGAPI-d20f30fd-e62e-4330-abef-897b16fae01f';
+  const api_key = 'RGAPI-86e227d7-291f-4d5c-a91b-a6b0ca9a339e';
   const URL = `https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/lflame?api_key=${api_key}`;
 
   // rp(URL, function (error, response, body) {
@@ -62,16 +62,17 @@ router.get('/', function(req, res, next) {
       console.log('match', match);
       matchData = match;
       // res.json({
-      //   summonerInfo, 
-      //   match,
+      //   matchData,
       //   championData
       // })
-      const URL4 = `https://na1.api.riotgames.com/lol/static-data/v3/champions?locale=en_US&dataById=false&api_key=${api_key}`;
+      // const URL4 = `https://na1.api.riotgames.com/lol/static-data/v3/champions?locale=en_US&dataById=false&api_key=${api_key}`;
+      const URL4 = `empty test`;
 
-      return promiseReturn(URL4);
-    }).then((champData) => {
+      return URL4;
+    })
+    .then((champData) => {
       championData = champData;
-      
+
       res.json({
         summonerInfo, 
         matchData,
