@@ -1,19 +1,28 @@
 import React, { Component } from 'react';
 import './App.css';
+import PlayerBox from './components/PlayerBox';
 
 import champ from './champions';
+import axios from 'axios';
 // import { STATES } from './test';
 
 class App extends Component {
-  state = {
-    data: {}
+  constructor(props) {
+    super(props);
+    this.state = {
+      data: {},
+      value: '',
+    }
+
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentDidMount() {
     // this works because we set up proxy in package.json
-    fetch('/users')
-    .then(res => res.json())
-    .then(data => this.setState({ data}));
+    // fetch('/users')
+    // .then(res => res.json())
+    // .then(data => this.setState({ data}));
 
     this.setState({
       championData: Object.values(champ.champ)
@@ -22,6 +31,21 @@ class App extends Component {
 
   findwhere(array, criteria) {
     return array.find(item => Object.keys(criteria).every(key => item[key] === criteria[key]));
+  }
+
+  handleChange(event) {
+    this.setState({value: event.target.value});
+  }
+
+  handleSubmit(event) {
+    // axios.get('/users')
+    //   .then(res => res.json())
+    //   .then(data => this.setState({ data}));
+
+    axios.get(`/users/${this.state.value}`)
+      .then(res => this.setState({ data: res.data}));
+
+    event.preventDefault();
   }
 
 
@@ -45,20 +69,36 @@ class App extends Component {
       return pName === playerName;  
     });
 
-    let highestKDA = 0;
-    let highestKDAPlayerId;
-    let highestKDAPlayerName;
-    let highestKDAChampionId;
+    // team 1 highest
+    let t1HighestKDA = 0;
+    let t1HighestKDAPlayerId;
+    let t1HighestKDAPlayerName;
+    let t1HighestKDAChampionId;
 
-    let lowestKDA = 0;
-    let lowestKDAPlayerId;
-    let lowestKDAPlayerName;
-    let lowestKDAChampionId;
+    //team 2 highest
+    let t2HighestKDA = 0;
+    let t2HighestKDAPlayerId;
+    let t2HighestKDAPlayerName;
+    let t2HighestKDAChampionId;
+
+    // team 1 lowest
+    let t1LowestKDA = 0;
+    let t1LowestKDAPlayerId;
+    let t1LowestKDAPlayerName;
+    let t1LowestKDAChampionId;
+
+    // team 2 lowest
+    let t2LowestKDA = 0;
+    let t2LowestKDAPlayerId;
+    let t2LowestKDAPlayerName;
+    let t2LowestKDAChampionId;
 
     let currentPlayerKDA = 0;
     let currentPlayerId;
     let currentPlayerName;
     let currentPlayerChampionId;
+
+    // console.log('matchParticipantsStats', matchParticipantsStats);
 
 
     // loops through participants Stats
@@ -73,24 +113,33 @@ class App extends Component {
       const playerName = matchParticipants[i].player.summonerName;
 
       const kda = (kills + assists) / deaths;
-      //highest KDA
-      if (kda > highestKDA) {
-        highestKDA = kda;
-        highestKDAPlayerId = playerId;
-        highestKDAChampionId = championId;
-        highestKDAPlayerName = playerName;
+      //highest KDA for team 1 or team2
+      if ((kda > t1HighestKDA) && i < 5) {
+        t1HighestKDA = parseFloat(kda).toFixed(2);
+        t1HighestKDAPlayerId = playerId;
+        t1HighestKDAChampionId = championId;
+        t1HighestKDAPlayerName = playerName;
+      } else if ((kda > t2HighestKDA) && i >= 5) {
+        t2HighestKDA = parseFloat(kda).toFixed(2);
+        t2HighestKDAPlayerId = playerId;
+        t2HighestKDAChampionId = championId;
+        t2HighestKDAPlayerName = playerName;
       }
 
       //lowest KDA
-      if ((kda < lowestKDA) || lowestKDA === 0) {
-
-        console.log('kda logged for lowest');
-        lowestKDA = kda;
-        lowestKDAPlayerId = playerId;
-        lowestKDAChampionId = championId;
-        lowestKDAPlayerName = playerName;
+      if (((kda < t1LowestKDA) || t1LowestKDA === 0) && i < 5) {
+        t1LowestKDA = parseFloat(kda).toFixed(2);
+        t1LowestKDAPlayerId = playerId;
+        t1LowestKDAChampionId = championId;
+        t1LowestKDAPlayerName = playerName;
+      } else if (((kda < t2LowestKDA) || t2LowestKDA === 0) && i >= 5){
+        t2LowestKDA = parseFloat(kda).toFixed(2);
+        t2LowestKDAPlayerId = playerId;
+        t2LowestKDAChampionId = championId;
+        t2LowestKDAPlayerName = playerName;
       }
 
+      // current player
       if (playerName === currentPlayerInfo[0].player.summonerName) {
         currentPlayerKDA = kda;
         currentPlayerName = playerName;
@@ -98,57 +147,80 @@ class App extends Component {
       }
     }
 
-    let highestKDAChamp = highestKDAChampionId && this.findwhere(this.state.championData, {"id": highestKDAChampionId}).name;
-    let lowestKDAChamp = lowestKDAChampionId && this.findwhere(this.state.championData, {"id": lowestKDAChampionId}).name;
+    let t1HighestKDAChamp = t1HighestKDAChampionId && this.findwhere(this.state.championData, {"id": t1HighestKDAChampionId}).name;
+    let t1LowestKDAChamp = t1LowestKDAChampionId && this.findwhere(this.state.championData, {"id": t1LowestKDAChampionId}).name;
+
+    let t2HighestKDAChamp = t2HighestKDAChampionId && this.findwhere(this.state.championData, {"id": t2HighestKDAChampionId}).name;
+    let t2LowestKDAChamp = t2LowestKDAChampionId && this.findwhere(this.state.championData, {"id": t2LowestKDAChampionId}).name;
     let currentPlayerChamp = currentPlayerChampionId && this.findwhere(this.state.championData, {"id": currentPlayerChampionId}).name;
 
-    // console.log('champs', champions);
+    // if(currentPlayerName) {
+    //   console.log('YOUR STATS');
+    //   console.log(`${currentPlayerName} playing ${currentPlayerChamp} had a KDA of ${currentPlayerKDA} as championID of ${currentPlayerChampionId}`)
+    //   console.log('TEAM 1');
+    //   console.log(`${t1HighestKDAPlayerName} playing ${t1HighestKDAChamp} had the highest KDA of ${t1HighestKDA} as championID of ${t1HighestKDAChampionId}`)
+    //   console.log(`${t1LowestKDAPlayerName} playing ${t1LowestKDAChamp} had the lowest KDA of ${t1LowestKDA} as championID of ${t1LowestKDAChampionId}`)
 
-    // let highestKDAChamp = champions &&  Object.keys(champions);
-    console.log('higestKDAChamp', highestKDAChamp);
-    // for(let x in champions) {
-    //   console.log(x);
+    //   console.log('TEAM 2');
+    //   console.log(`${t2HighestKDAPlayerName} playing ${t2HighestKDAChamp} had the highest KDA of ${t2HighestKDA} as championID of ${t2HighestKDAChampionId}`)
+    //   console.log(`${t2LowestKDAPlayerName} playing ${t2LowestKDAChamp} had the lowest KDA of ${t2LowestKDA} as championID of ${t2LowestKDAChampionId}`)
     // }
-
-    console.log(`${highestKDAPlayerName} playing ${highestKDAChamp} had the highest KDA of ${highestKDA} as championID of ${highestKDAChampionId}`)
-    console.log(`${lowestKDAPlayerName} playing ${lowestKDAChamp} had the lowest KDA of ${lowestKDA} as championID of ${lowestKDAChampionId}`)
-    console.log(`${currentPlayerName} playing ${currentPlayerChamp} had a KDA of ${currentPlayerKDA} as championID of ${currentPlayerChampionId}`)
-
-
-    // const highestKDAPlayer = matchParticipantsStats && matchParticipantsStats.filter(players => {
-    //   const stats = players.stats;
-    //   const playerId = stats.participantId;
-    //   const kills = stats.kills;
-    //   const deaths = stats.deaths;
-    //   const assists = stats.assits;
-
-    //   const kda = (kills + assists) / deaths;
-    //   if (kda > highestKDA) {
-    //     highestKDA = kda;
-    //     highestKDAPlayerId = playerId;
-    //   }
-
-    //   return 
-    //   console.log('players', players);
-    // });
-
-    // console.log('playerName', playerName);
-    // console.log('matchParticipants', matchParticipants);
-    // console.log('pNames', currentPlayerInfo);
-
-    // get highest KDA out of 10 players
-
+    
     
 
 
     return (
       <div className="App">
-        <h1>Users</h1>
-        <ul>
-          {/* {this.state.data.map(data =>
-            <li key={data.id}>{data.username}</li>
-          )} */}
-        </ul>
+        <form onSubmit={this.handleSubmit}>
+          <input type="text" value={this.state.value} onChange={this.handleChange} />
+          <input type="submit" value="Submit"/> 
+        </form>
+        <h1>Last match for: {currentPlayerName}</h1>
+        <h2>Blue Side</h2>
+        <div className="stats-list">
+          <PlayerBox
+            title={'Best Performing Player'}
+            team={'team1'}
+            kda={t1HighestKDA} 
+            name={t1HighestKDAPlayerName}
+            champion={t1HighestKDAChamp}
+          />
+
+          <PlayerBox
+            title={'Most Garbage Player'}
+            team={'team1'}
+            kda={t1LowestKDA} 
+            name={t1LowestKDAPlayerName}
+            champion={t1LowestKDAChamp}
+          />
+
+          <PlayerBox
+            title={'Your Stats'}
+            team={'team1'}
+            kda={currentPlayerKDA} 
+            name={currentPlayerName}
+            champion={currentPlayerChamp}
+          />
+        </div>
+
+        <h2>Red Side</h2>
+        <div className="stats-list">
+          <PlayerBox
+            title={'Best Performing Player'}
+            team={'team1'}
+            kda={t2HighestKDA} 
+            name={t2HighestKDAPlayerName}
+            champion={t2HighestKDAChamp}
+          />
+
+          <PlayerBox
+            title={'Most Garbage Player'}
+            team={'team1'}
+            kda={t2LowestKDA} 
+            name={t2LowestKDAPlayerName}
+            champion={t2LowestKDAChamp}
+          />
+        </div>
       </div>
     );
   }

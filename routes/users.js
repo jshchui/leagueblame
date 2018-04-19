@@ -6,42 +6,16 @@ var rp = require('request-promise');
 var async = require('async');
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
-  const api_key = 'RGAPI-86e227d7-291f-4d5c-a91b-a6b0ca9a339e';
-  const URL = `https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/lflame?api_key=${api_key}`;
-
-  // rp(URL, function (error, response, body) {
-  //   console.log('error:', error); // Print the error if one occurred
-  //   console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-  //   // console.log('body:', body); // Print the HTML for the Google homepage.
-
-  // })
-  // .then(function(data) {
-  //   const json = JSON.parse(data);
-  //   const accountId = json.accountId;
-  //   const URL2 = `https://na1.api.riotgames.com/lol/match/v3/matchlists/by-account/${accountId}/recent?api_key=${api_key}`;
-  //   let recentMatch;
-
-  //   request(URL2, function (error, response, body) {
-  //     const json = JSON.parse(body);
-  //     // console.log('json', json);
-  //     recentMatch = json.matches[0].gameId;
-  //     console.log('recentMatch', recentMatch);
-  //     // res.json(json)
-  //     return recentMatch;
-  //   });
-  // })
-  // .then(function(data) {
-  //   // const json = JSON.parse(data);
-  //   console.log('data third', data);
-  // })
-  // .catch(function(err) {
-  //   console.log('err', err);
-  // });
+router.get('/:name', function(req, res, next) {
+  const api_key = 'RGAPI-fa39dce0-bd4c-4411-a1ee-1c52ec2b43f2';
+  const summonerName = req.params.name;
+  const URL = `https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/${summonerName}?api_key=${api_key}`;
 
   let summonerInfo;
   let championData;
   let matchData;
+
+
 
   const thisneedstobefexed = 
     promiseReturn(URL)
@@ -59,7 +33,7 @@ router.get('/', function(req, res, next) {
       return promiseReturn(URL3);
     })
     .then((match) => {
-      console.log('match', match);
+      // console.log('match', match);
       matchData = match;
       // res.json({
       //   matchData,
