@@ -7,7 +7,7 @@ var async = require('async');
 
 /* GET users listing. */
 router.get('/:name', function(req, res, next) {
-  const api_key = 'RGAPI-e4bf6f4b-e43a-49b9-8e27-89622426545b';
+  const api_key = 'RGAPI-dce90d23-5179-465e-a0ee-c15c5c1e7f6c';
   const summonerName = req.params.name;
   const URL = `https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/${summonerName}?api_key=${api_key}`;
 

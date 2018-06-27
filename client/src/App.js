@@ -17,6 +17,7 @@ class App extends Component {
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.calculateGame = this.calculateGame.bind(this);
+    this.getTeamStats = this.getTeamStats.bind(this);
   }
 
   componentDidMount() {
@@ -35,17 +36,71 @@ class App extends Component {
     // })
   }
 
+  getTeamStats(players, playerStats, side) {
+    const team = players.slice(
+      (side === 'blue') ? 0 : players.length / 2, 
+      (side === 'blue') ? players.length / 2 : players.length,
+    )
+
+    const teamStats = playerStats.slice(
+      (side === 'blue') ? 0 : players.length / 2, 
+      (side === 'blue') ? players.length / 2 : players.length,
+    )
+
+    const newTeam = [];
+
+    for(let i = 0; i < team.length; i++) {
+      const combinedPlayerData = {...team[i], ...teamStats[i]}
+      newTeam.push(combinedPlayerData);
+    }
+
+    return newTeam;
+  }
+
   calculateGame() {
     // const champions = this.state.data && this.state.data.championData && this.state.data.championData.data;
 
     // gets latest match info (game duration, gameID, PARTICIPANTS STATS, PARTICIPANTSIDENTITIES)
     const matchInfo = this.state.data && this.state.data.matchData;
-
     // gets match participants Info (participantId, accountId, summonerId, SUMMONERNAME);
     const matchParticipants = matchInfo && matchInfo.participantIdentities; // array of 10 people
-
     // gets the stats of each participants (team, firstblood, etc)
     const matchParticipantsStats = matchInfo && matchInfo.participants; // array of 10 peoples stats
+
+    const allPlayerNames = matchParticipants && matchParticipants.map((player) => {
+      const participantId = player.participantId;
+      const playerName = player.player.summonerName;
+      return {
+        participantId,
+        playerName,
+      }
+    });
+
+    const allPlayerStats = matchParticipants && matchParticipantsStats.map((stats) => {
+      const championId = stats.championId;
+      const participantId = stats.participantId;
+      const playerStats = stats.stats;
+
+      const kills = playerStats.kills;
+      const deaths = playerStats.deaths;
+      const assists = playerStats.assists;
+      const kda = parseFloat((kills + assists) / (deaths || 1)).toFixed(2);
+
+
+      return {
+        championId,
+        participantId,
+        kda,
+      }
+    });
+
+    console.log('allPlayerStats: ', allPlayerStats);
+    console.log('allPlayerNames: ', allPlayerNames);
+
+    const blueTeamStats = this.getTeamStats(allPlayerNames, allPlayerStats, 'blue');
+    const redTeamStats = this.getTeamStats(allPlayerNames, allPlayerStats, 'red');
+    console.log('highBlue: ', blueTeamStats);
+    console.log('highred: ', redTeamStats);
 
     // should be 10 because 10 players
     const participantsLength = matchParticipantsStats && matchParticipantsStats.length;
