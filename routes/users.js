@@ -7,7 +7,7 @@ var async = require('async');
 
 /* GET users listing. */
 router.get('/:name', function(req, res, next) {
-  const api_key = 'RGAPI-fa39dce0-bd4c-4411-a1ee-1c52ec2b43f2';
+  const api_key = 'RGAPI-e4bf6f4b-e43a-49b9-8e27-89622426545b';
   const summonerName = req.params.name;
   const URL = `https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/${summonerName}?api_key=${api_key}`;
 
@@ -15,25 +15,23 @@ router.get('/:name', function(req, res, next) {
   let championData;
   let matchData;
 
-
-
   const thisneedstobefexed = 
     promiseReturn(URL)
     .then((userData) => {
       const accountId = userData.accountId;
-      const URL2 = `https://na1.api.riotgames.com/lol/match/v3/matchlists/by-account/${accountId}/recent?api_key=${api_key}`;
+      const URL2 = `https://na1.api.riotgames.com/lol/match/v3/matchlists/by-account/${accountId}?api_key=${api_key}`;
+
       summonerInfo = userData;
 
       return promiseReturn(URL2);
     })
     .then((matchData) => {
-      const matchId = matchData.matches[0].gameId;
+      const matchId = matchData && matchData.matches && matchData.matches[0].gameId;
       // const URL3 = `https://na1.api.riotgames.com/lol/match/v3/timelines/by-match/${matchId}?api_key=${api_key}`;
       const URL3 = `https://na1.api.riotgames.com/lol/match/v3/matches/${matchId}?api_key=${api_key}`;
       return promiseReturn(URL3);
     })
     .then((match) => {
-      // console.log('match', match);
       matchData = match;
       // res.json({
       //   matchData,
