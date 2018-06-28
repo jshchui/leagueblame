@@ -15,45 +15,30 @@ router.get('/:name', function(req, res, next) {
   let championData;
   let matchData;
 
-  const thisneedstobefexed = 
-    promiseReturn(URL)
-    .then((userData) => {
-      const accountId = userData.accountId;
-      const URL2 = `https://na1.api.riotgames.com/lol/match/v3/matchlists/by-account/${accountId}?api_key=${api_key}`;
+  promiseReturn(URL)
+  .then((userData) => {
+    const accountId = userData.accountId;
+    const URL2 = `https://na1.api.riotgames.com/lol/match/v3/matchlists/by-account/${accountId}?api_key=${api_key}`;
 
-      summonerInfo = userData;
+    summonerInfo = userData;
 
-      return promiseReturn(URL2);
+    return promiseReturn(URL2);
+  })
+  .then((matchData) => {
+    const matchId = matchData && matchData.matches && matchData.matches[0].gameId;
+    const URL3 = `https://na1.api.riotgames.com/lol/match/v3/matches/${matchId}?api_key=${api_key}`;
+    return promiseReturn(URL3);
+  })
+  .then((match) => {
+    matchData = match;
+    res.json({
+      summonerInfo,
+      matchData,
     })
-    .then((matchData) => {
-      const matchId = matchData && matchData.matches && matchData.matches[0].gameId;
-      // const URL3 = `https://na1.api.riotgames.com/lol/match/v3/timelines/by-match/${matchId}?api_key=${api_key}`;
-      const URL3 = `https://na1.api.riotgames.com/lol/match/v3/matches/${matchId}?api_key=${api_key}`;
-      return promiseReturn(URL3);
-    })
-    .then((match) => {
-      matchData = match;
-      // res.json({
-      //   matchData,
-      //   championData
-      // })
-      // const URL4 = `https://na1.api.riotgames.com/lol/static-data/v3/champions?locale=en_US&dataById=false&api_key=${api_key}`;
-      const URL4 = `empty test`;
-
-      return URL4;
-    })
-    .then((champData) => {
-      championData = champData;
-
-      res.json({
-        summonerInfo, 
-        matchData,
-        championData
-      })
-    })
-    .catch((err) => {
-      console.log('error', err);
-    })
+  })
+  .catch((err) => {
+    console.log('error', err);
+  })
 });
 
 function promiseReturn(url) {

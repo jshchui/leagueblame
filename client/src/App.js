@@ -1,16 +1,13 @@
 import React, { Component } from 'react';
 import './App.css';
 import PlayerBox from './components/PlayerBox';
-
 import champ from './champions';
 import axios from 'axios';
-// import { STATES } from './test';
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      data: {},
       value: '',
     }
 
@@ -18,22 +15,37 @@ class App extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
     this.calculateGame = this.calculateGame.bind(this);
     this.getSortedTeamStats = this.getSortedTeamStats.bind(this);
+    this.getAllPlayerNames = this.getAllPlayerNames.bind(this);
+    this.getAllPlayerStats = this.getAllPlayerStats.bind(this);
+    this.getCurrentPlayerInfo = this.getCurrentPlayerInfo.bind(this);
   }
+  
+  // data from backend
+  data;
+
+  // data from file
+  champData;
 
   componentDidMount() {
-    // this works because we set up proxy in package.json
-    // fetch('/users')
-    // .then(res => res.json())
-    // .then(data => this.setState({ data}));
+    this.champData = Object.values(champ.champ);
+  }
 
-    // sets the champion data in the state
-    
-    
-    
-    // DELETE
-    // this.setState({
-    //   championData: Object.values(champ.champ)
-    // })
+  findwhere(array, criteria) {
+    return array.find(item => Object.keys(criteria).every(key => item[key] === criteria[key]));
+  }
+
+  handleChange(event) {
+    this.setState({value: event.target.value});
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+    axios.get(`/users/${this.state.value}`)
+      .then(res => {
+        this.data = res.data;
+        this.calculateGame();
+        this.setState({ value: ''});
+      });
   }
 
   getSortedTeamStats(players, playerStats, side) {
@@ -57,17 +69,8 @@ class App extends Component {
     return newTeam.sort((a, b) => Number(a.kda) < Number(b.kda));
   }
 
-  calculateGame() {
-    // const champions = this.state.data && this.state.data.championData && this.state.data.championData.data;
-
-    // gets latest match info (game duration, gameID, PARTICIPANTS STATS, PARTICIPANTSIDENTITIES)
-    const matchInfo = this.state.data && this.state.data.matchData;
-    // gets match participants Info (participantId, accountId, summonerId, SUMMONERNAME);
-    const matchParticipants = matchInfo && matchInfo.participantIdentities; // array of 10 people
-    // gets the stats of each participants (team, firstblood, etc)
-    const matchParticipantsStats = matchInfo && matchInfo.participants; // array of 10 peoples stats
-
-    const allPlayerNames = matchParticipants && matchParticipants.map((player) => {
+  getAllPlayerNames(matchParticipants) {
+    return matchParticipants.map((player) => {
       const participantId = player.participantId;
       const playerName = player.player.summonerName;
       return {
@@ -75,8 +78,10 @@ class App extends Component {
         playerName,
       }
     });
+  }
 
-    const allPlayerStats = matchParticipants && matchParticipantsStats.map((stats) => {
+  getAllPlayerStats(matchParticipantsStats) {
+    return matchParticipantsStats.map((stats) => {
       const championId = stats.championId;
       const participantId = stats.participantId;
       const playerStats = stats.stats;
@@ -92,168 +97,80 @@ class App extends Component {
         kda,
       }
     });
+  }
 
-    const blueTeam = this.getSortedTeamStats(allPlayerNames, allPlayerStats, 'blue');
-    const redTeam = this.getSortedTeamStats(allPlayerNames, allPlayerStats, 'red');
-
-    const blueTeamHighestKDAName = blueTeam[0] && blueTeam[0].playerName;
-    const blueTeamHighestKDA = blueTeam[0] && blueTeam[0].kda;
-    const blueTeamHighestKDAChamp = blueTeam[0].championId && this.findwhere(Object.values(champ.champ), {"id": blueTeam[0].championId}).name;
-    
-    const blueTeamLowestKDA = blueTeam[blueTeam.length - 1] && blueTeam[blueTeam.length - 1].kda;
-    const blueTeamLowestKDAName = blueTeam[blueTeam.length - 1] && blueTeam[blueTeam.length - 1].playerName;
-    const blueTeamLowestKDAChamp = blueTeam[blueTeam.length - 1].championId && this.findwhere(Object.values(champ.champ), {"id": blueTeam[blueTeam.length - 1].championId}).name;
-    
-    const redTeamHighestKDAName = redTeam[0] && redTeam[0].playerName;
-    const redTeamHighestKDA = redTeam[0] && redTeam[0].kda;
-    const redTeamHighestKDAChamp = redTeam[0].championId && this.findwhere(Object.values(champ.champ), {"id": redTeam[0].championId}).name;
-    
-    const redTeamLowestKDA = redTeam[redTeam.length - 1] && redTeam[redTeam.length - 1].kda;
-    const redTeamLowestKDAName = redTeam[redTeam.length - 1] && redTeam[redTeam.length - 1].playerName;
-    const redTeamLowestKDAChamp = redTeam[redTeam.length - 1].championId && this.findwhere(Object.values(champ.champ), {"id": redTeam[redTeam.length - 1].championId}).name;
-
-
-    // should be 10 because 10 players
-    const participantsLength = matchParticipantsStats && matchParticipantsStats.length;
-
-    // gets the summoner info for the name entered
-    const playerInfo = this.state.data && this.state.data.summonerInfo;
-
-    // gets summoner name
-    const playerName = playerInfo && playerInfo.name;
-
-    // gets the summoner player match info
-    const currentPlayerInfo = matchParticipants && matchParticipants.filter(players => {
+  getCurrentPlayerInfo(matchParticipants) {
+    return matchParticipants.filter(players => {
       const pInfo = players.player;
       const pName = pInfo.summonerName;
 
-      return pName === playerName;  
+      return pName === this.data.summonerInfo.name;
     });
+  }
 
-    console.log('currentPlayerInfo: ', currentPlayerInfo);
-    let getCurrentPlayerStats;
+  calculateGame() {
+    const matchInfo = this.data && this.data.matchData; // recent match info (gameID, participant stats and identities
+    const matchParticipants = matchInfo && matchInfo.participantIdentities; // 10 players (participantId, accountId, summonerId, summonerName);
+    const matchParticipantsStats = matchInfo && matchInfo.participants; // 10 players (team, firstblood, kills, etc);
 
-    if (currentPlayerInfo[0].participantId < 5) {
-      getCurrentPlayerStats = blueTeam.filter((stats) => {
+    const allPlayerNames = matchParticipants && this.getAllPlayerNames(matchParticipants);
+    const allPlayerStats = matchParticipantsStats && this.getAllPlayerStats(matchParticipantsStats);
+
+    // teams sorted by KDA
+    const blueTeam = allPlayerNames && allPlayerStats && this.getSortedTeamStats(allPlayerNames, allPlayerStats, 'blue');
+    const redTeam = allPlayerNames && allPlayerStats && this.getSortedTeamStats(allPlayerNames, allPlayerStats, 'red');
+    
+    // stats for player entered
+    const currentPlayerInfo = matchParticipants && this.getCurrentPlayerInfo(matchParticipants);
+    let currentPlayerStats;
+    if (currentPlayerInfo && currentPlayerInfo[0].participantId < 5) {
+      currentPlayerStats = blueTeam.filter((stats) => {
         return stats.participantId === currentPlayerInfo[0].participantId
       });
-    } else {
-      getCurrentPlayerStats = redTeam.filter((stats) => {
+    } else if (currentPlayerInfo && currentPlayerInfo[0].participantId >= 5) {
+      currentPlayerStats = redTeam.filter((stats) => {
         return stats.participantId === currentPlayerInfo[0].participantId
       });
     }
 
-    console.log('getCurrentPlayerStats: ', getCurrentPlayerStats);
+    // get stats for players that matter
+    const blueTeamHighestKDAName = blueTeam && blueTeam[0] && blueTeam[0].playerName;
+    const blueTeamHighestKDA = blueTeam && blueTeam[0] && blueTeam[0].kda;
+    const blueTeamHighestKDAChamp = blueTeam && blueTeam[0].championId && this.findwhere(this.champData, {"id": blueTeam[0].championId}).name;
+    
+    const blueTeamLowestKDA = blueTeam && blueTeam[blueTeam.length - 1] && blueTeam[blueTeam.length - 1].kda;
+    const blueTeamLowestKDAName = blueTeam && blueTeam[blueTeam.length - 1] && blueTeam[blueTeam.length - 1].playerName;
+    const blueTeamLowestKDAChamp = blueTeam && blueTeam[blueTeam.length - 1].championId && this.findwhere(this.champData, {"id": blueTeam[blueTeam.length - 1].championId}).name;
+    
+    const redTeamHighestKDAName = redTeam && redTeam[0] && redTeam[0].playerName;
+    const redTeamHighestKDA = redTeam && redTeam[0] && redTeam[0].kda;
+    const redTeamHighestKDAChamp = redTeam && redTeam[0].championId && this.findwhere(this.champData, {"id": redTeam[0].championId}).name;
+    
+    const redTeamLowestKDA = redTeam && redTeam[redTeam.length - 1] && redTeam[redTeam.length - 1].kda;
+    const redTeamLowestKDAName = redTeam && redTeam[redTeam.length - 1] && redTeam[redTeam.length - 1].playerName;
+    const redTeamLowestKDAChamp = redTeam && redTeam[redTeam.length - 1].championId && this.findwhere(this.champData, {"id": redTeam[redTeam.length - 1].championId}).name;
 
-    // if(currentPlayerInfo[0].player.summonerName === )
-
-    // if (playerName === currentPlayerInfo[0].player.summonerName) {
-    //   currentPlayerKDA = parseFloat(kda).toFixed(2);
-    //   currentPlayerName = playerName;
-    //   currentPlayerChampionId = championId;
-    // }
-
-    // team 1 highest
-    let t1HighestKDA = 0;
-    let t1HighestKDAPlayerId;
-    let t1HighestKDAPlayerName;
-    let t1HighestKDAChampionId;
-
-    //team 2 highest
-    let t2HighestKDA = 0;
-    let t2HighestKDAPlayerId;
-    let t2HighestKDAPlayerName;
-    let t2HighestKDAChampionId;
-
-    // team 1 lowest
-    let t1LowestKDA = 0;
-    let t1LowestKDAPlayerId;
-    let t1LowestKDAPlayerName;
-    let t1LowestKDAChampionId;
-
-    // team 2 lowest
-    let t2LowestKDA = 0;
-    let t2LowestKDAPlayerId;
-    let t2LowestKDAPlayerName;
-    let t2LowestKDAChampionId;
-
-    let currentPlayerKDA = 0;
-    let currentPlayerId;
-    let currentPlayerName;
-    let currentPlayerChampionId;
-
-    // loops through participants Stats
-    for(let i = 0; i < participantsLength; i++) {
-      const championId = matchParticipantsStats[i].championId;
-      const stats = matchParticipantsStats[i].stats;
-      const playerId = stats.participantId;
-      const kills = stats.kills;
-      const deaths = stats.deaths;
-      const assists = stats.assists;
-
-      const playerName = matchParticipants[i].player.summonerName;
-
-      const kda = (kills + assists) / (deaths || 1);
-
-      //highest KDA for team 1 or team2
-      if ((kda > t1HighestKDA) && i < 5) {
-        t1HighestKDA = parseFloat(kda).toFixed(2);
-        t1HighestKDAPlayerId = playerId;
-        t1HighestKDAChampionId = championId;
-        t1HighestKDAPlayerName = playerName;
-      } else if ((kda > t2HighestKDA) && i >= 5) {
-        t2HighestKDA = parseFloat(kda).toFixed(2);
-        t2HighestKDAPlayerId = playerId;
-        t2HighestKDAChampionId = championId;
-        t2HighestKDAPlayerName = playerName;
-      }
-
-      //lowest KDA
-      if (((kda < t1LowestKDA) || t1LowestKDA === 0) && i < 5) {
-        t1LowestKDA = parseFloat(kda).toFixed(2);
-        t1LowestKDAPlayerId = playerId;
-        t1LowestKDAChampionId = championId;
-        t1LowestKDAPlayerName = playerName;
-      } else if (((kda < t2LowestKDA) || t2LowestKDA === 0) && i >= 5){
-        t2LowestKDA = parseFloat(kda).toFixed(2);
-        t2LowestKDAPlayerId = playerId;
-        t2LowestKDAChampionId = championId;
-        t2LowestKDAPlayerName = playerName;
-      }
-
-      // current player
-      if (playerName === currentPlayerInfo[0].player.summonerName) {
-        currentPlayerKDA = parseFloat(kda).toFixed(2);
-        currentPlayerName = playerName;
-        currentPlayerChampionId = championId;
-      }
-    }
-
-    // get champion name of these characters
-    let t1HighestKDAChamp = t1HighestKDAChampionId && this.findwhere(Object.values(champ.champ), {"id": t1HighestKDAChampionId}).name;
-    let t1LowestKDAChamp = t1LowestKDAChampionId && this.findwhere(Object.values(champ.champ), {"id": t1LowestKDAChampionId}).name;
-    let t2HighestKDAChamp = t2HighestKDAChampionId && this.findwhere(Object.values(champ.champ), {"id": t2HighestKDAChampionId}).name;
-    let t2LowestKDAChamp = t2LowestKDAChampionId && this.findwhere(Object.values(champ.champ), {"id": t2LowestKDAChampionId}).name;
-    let currentPlayerChamp = currentPlayerChampionId && this.findwhere(Object.values(champ.champ), {"id": currentPlayerChampionId}).name;
-
+    const currentPlayerKDA = currentPlayerStats && currentPlayerStats[0] && currentPlayerStats[0].kda;
+    const currentPlayerName = currentPlayerStats && currentPlayerStats[0] && currentPlayerStats[0].playerName;
+    const currentPlayerChamp = currentPlayerStats && currentPlayerStats[0] && this.findwhere(this.champData, {"id": currentPlayerStats[0].championId}).name;
 
     this.setState({
-      t1HighestKDAPlayer: {
+      blueTeamHighestKDAPlayer: {
         blueTeamHighestKDA,
         blueTeamHighestKDAChamp,
         blueTeamHighestKDAName,
       },
-      t2HighestKDAPlayer: {
+      redTeamHighestKDAPlayer: {
         redTeamHighestKDA,
         redTeamHighestKDAChamp,
         redTeamHighestKDAName,
       },
-      t1LowestKDAPlayer: {
+      blueTeamLowestKDAPlayer: {
         blueTeamLowestKDA,
         blueTeamLowestKDAChamp,
         blueTeamLowestKDAName,
       },
-      t2LowestKDAPlayer: {
+      redTeamLowestKDAPlayer: {
         redTeamLowestKDA,
         redTeamLowestKDAChamp,
         redTeamLowestKDAName,
@@ -266,86 +183,57 @@ class App extends Component {
     })
   }
 
-  // found this online
-  findwhere(array, criteria) {
-    return array.find(item => Object.keys(criteria).every(key => item[key] === criteria[key]));
-  }
-
-  handleChange(event) {
-    this.setState({value: event.target.value});
-  }
-
-  handleSubmit(event) {
-    // axios.get('/users')
-    //   .then(res => res.json())
-    //   .then(data => this.setState({ data}));
-
-    axios.get(`/users/${this.state.value}`)
-      .then(res => {
-        this.setState({ data: res.data})
-        this.calculateGame();
-      });
-    
-    event.preventDefault();
-  }
-
   render() {
     const currentPlayer = this.state.currentPlayer;
-    const t1Highest = this.state.t1HighestKDAPlayer;
-    const t2Highest = this.state.t2HighestKDAPlayer;
-    const t1Lowest = this.state.t1LowestKDAPlayer;
-    const t2Lowest = this.state.t2LowestKDAPlayer;
+    const blueTeamHighest = this.state.blueTeamHighestKDAPlayer;
+    const redTeamHighest = this.state.redTeamHighestKDAPlayer;
+    const blueTeamLowest = this.state.blueTeamLowestKDAPlayer;
+    const redTeamLowest = this.state.redTeamLowestKDAPlayer;
 
     return (
       <div className="App">
-        <form onSubmit={this.handleSubmit}>
-          <input type="text" value={this.state.value} onChange={this.handleChange} />
-          <input type="submit" value="Submit"/> 
+        <form className="name-field" onSubmit={this.handleSubmit}>
+          <input className="name-field__text-box" type="text" value={this.state.value} onChange={this.handleChange} />
+          {/* <input type="submit" value="Submit"/>  */}
         </form>
         <h1>Last match for: {currentPlayer && currentPlayer.currentPlayerName}</h1>
-        <h2>Blue Side</h2>
-        <div className="stats-list">
-          <PlayerBox
-            title={'Best Performing Player'}
-            team={'team1'}
-            kda={t1Highest && t1Highest.blueTeamHighestKDA} 
-            name={t1Highest && t1Highest.blueTeamHighestKDAName}
-            champion={t1Highest && t1Highest.blueTeamHighestKDAChamp}
-          />
-
-          <PlayerBox
-            title={'Worst Performing Player'}
-            team={'team1'}
-            kda={t1Lowest && t1Lowest.blueTeamLowestKDA} 
-            name={t1Lowest && t1Lowest.blueTeamLowestKDAName}
-            champion={t1Lowest && t1Lowest.blueTeamLowestKDAChamp}
-          />
-
+        <div className="stats-list stats-list--player">
           <PlayerBox
             title={'Your Stats'}
-            team={'team1'}
             kda={currentPlayer && currentPlayer.currentPlayerKDA} 
             name={currentPlayer && currentPlayer.currentPlayerName}
             champion={currentPlayer && currentPlayer.currentPlayerChamp}
-          />
+            />
         </div>
-
-        <h2>Red Side</h2>
+        <h2 className="blue-title">Blue Side</h2>
         <div className="stats-list">
           <PlayerBox
             title={'Best Performing Player'}
-            team={'team1'}
-            kda={t2Highest && t2Highest.redTeamHighestKDA} 
-            name={t2Highest && t2Highest.redTeamHighestKDAName}
-            champion={t2Highest && t2Highest.redTeamHighestKDAChamp}
+            kda={blueTeamHighest && blueTeamHighest.blueTeamHighestKDA} 
+            name={blueTeamHighest && blueTeamHighest.blueTeamHighestKDAName}
+            champion={blueTeamHighest && blueTeamHighest.blueTeamHighestKDAChamp}
           />
-
           <PlayerBox
             title={'Worst Performing Player'}
-            team={'team1'}
-            kda={t2Lowest && t2Lowest.redTeamLowestKDA} 
-            name={t2Lowest && t2Lowest.redTeamLowestKDAName}
-            champion={t2Lowest && t2Lowest.redTeamLowestKDAChamp}
+            kda={blueTeamLowest && blueTeamLowest.blueTeamLowestKDA} 
+            name={blueTeamLowest && blueTeamLowest.blueTeamLowestKDAName}
+            champion={blueTeamLowest && blueTeamLowest.blueTeamLowestKDAChamp}
+          />
+        </div>
+
+        <h2 className="red-title">Red Side</h2>
+        <div className="stats-list">
+          <PlayerBox
+            title={'Best Performing Player'}
+            kda={redTeamHighest && redTeamHighest.redTeamHighestKDA} 
+            name={redTeamHighest && redTeamHighest.redTeamHighestKDAName}
+            champion={redTeamHighest && redTeamHighest.redTeamHighestKDAChamp}
+          />
+          <PlayerBox
+            title={'Worst Performing Player'}
+            kda={redTeamLowest && redTeamLowest.redTeamLowestKDA} 
+            name={redTeamLowest && redTeamLowest.redTeamLowestKDAName}
+            champion={redTeamLowest && redTeamLowest.redTeamLowestKDAChamp}
           />
         </div>
       </div>
