@@ -125,11 +125,11 @@ class App extends Component {
     // stats for player entered
     const currentPlayerInfo = matchParticipants && this.getCurrentPlayerInfo(matchParticipants);
     let currentPlayerStats;
-    if (currentPlayerInfo && currentPlayerInfo[0].participantId < 5) {
+    if (currentPlayerInfo && currentPlayerInfo[0] && currentPlayerInfo[0].participantId < 5) {
       currentPlayerStats = blueTeam.filter((stats) => {
         return stats.participantId === currentPlayerInfo[0].participantId
       });
-    } else if (currentPlayerInfo && currentPlayerInfo[0].participantId >= 5) {
+    } else if (currentPlayerInfo && currentPlayerInfo[0] && currentPlayerInfo[0].participantId >= 5) {
       currentPlayerStats = redTeam.filter((stats) => {
         return stats.participantId === currentPlayerInfo[0].participantId
       });
