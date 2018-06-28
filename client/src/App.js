@@ -208,13 +208,13 @@ class App extends Component {
         <h2 className="blue-title">Blue Side</h2>
         <div className="stats-list">
           <PlayerBox
-            title={'Best Performing Player'}
+            title={'Best Player'}
             kda={blueTeamHighest && blueTeamHighest.blueTeamHighestKDA} 
             name={blueTeamHighest && blueTeamHighest.blueTeamHighestKDAName}
             champion={blueTeamHighest && blueTeamHighest.blueTeamHighestKDAChamp}
           />
           <PlayerBox
-            title={'Worst Performing Player'}
+            title={'Worst Player Ever'}
             kda={blueTeamLowest && blueTeamLowest.blueTeamLowestKDA} 
             name={blueTeamLowest && blueTeamLowest.blueTeamLowestKDAName}
             champion={blueTeamLowest && blueTeamLowest.blueTeamLowestKDAChamp}
@@ -224,13 +224,13 @@ class App extends Component {
         <h2 className="red-title">Red Side</h2>
         <div className="stats-list">
           <PlayerBox
-            title={'Best Performing Player'}
+            title={'Best Player'}
             kda={redTeamHighest && redTeamHighest.redTeamHighestKDA} 
             name={redTeamHighest && redTeamHighest.redTeamHighestKDAName}
             champion={redTeamHighest && redTeamHighest.redTeamHighestKDAChamp}
           />
           <PlayerBox
-            title={'Worst Performing Player'}
+            title={'Worst Player Ever'}
             kda={redTeamLowest && redTeamLowest.redTeamLowestKDA} 
             name={redTeamLowest && redTeamLowest.redTeamLowestKDAName}
             champion={redTeamLowest && redTeamLowest.redTeamLowestKDAChamp}
