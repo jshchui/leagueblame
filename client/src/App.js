@@ -30,7 +30,7 @@ class App extends Component {
     this.champData = Object.values(champ.champ);
   }
 
-  findwhere(array, criteria) {
+  findWhere(array, criteria) {
     return array.find(item => Object.keys(criteria).every(key => item[key] === criteria[key]));
   }
 
@@ -46,27 +46,6 @@ class App extends Component {
         this.calculateGame();
         this.setState({ value: ''});
       });
-  }
-
-  getSortedTeamStats(players, playerStats, side) {
-    const team = players.slice(
-      (side === 'blue') ? 0 : players.length / 2, 
-      (side === 'blue') ? players.length / 2 : players.length,
-    )
-
-    const teamStats = playerStats.slice(
-      (side === 'blue') ? 0 : players.length / 2, 
-      (side === 'blue') ? players.length / 2 : players.length,
-    )
-
-    const newTeam = [];
-
-    for(let i = 0; i < team.length; i++) {
-      const combinedPlayerData = {...team[i], ...teamStats[i]}
-      newTeam.push(combinedPlayerData);
-    }
-
-    return newTeam.sort((a, b) => Number(a.kda) < Number(b.kda));
   }
 
   getAllPlayerNames(matchParticipants) {
@@ -99,6 +78,27 @@ class App extends Component {
     });
   }
 
+  getSortedTeamStats(players, playerStats, side) {
+    const teamNames = players.slice(
+      (side === 'blue') ? 0 : players.length / 2, 
+      (side === 'blue') ? players.length / 2 : players.length,
+    )
+
+    const teamStats = playerStats.slice(
+      (side === 'blue') ? 0 : players.length / 2, 
+      (side === 'blue') ? players.length / 2 : players.length,
+    )
+
+    const newTeam = [];
+
+    for(let i = 0; i < teamNames.length; i++) {
+      const combinedPlayerData = {...teamNames[i], ...teamStats[i]}
+      newTeam.push(combinedPlayerData);
+    }
+
+    return newTeam.sort((a, b) => Number(a.kda) < Number(b.kda));
+  }
+
   getCurrentPlayerInfo(matchParticipants) {
     return matchParticipants.filter(players => {
       const pInfo = players.player;
@@ -107,6 +107,8 @@ class App extends Component {
       return pName === this.data.summonerInfo.name;
     });
   }
+
+
 
   calculateGame() {
     const matchInfo = this.data && this.data.matchData; // recent match info (gameID, participant stats and identities
@@ -136,23 +138,23 @@ class App extends Component {
     // get stats for players that matter
     const blueTeamHighestKDAName = blueTeam && blueTeam[0] && blueTeam[0].playerName;
     const blueTeamHighestKDA = blueTeam && blueTeam[0] && blueTeam[0].kda;
-    const blueTeamHighestKDAChamp = blueTeam && blueTeam[0].championId && this.findwhere(this.champData, {"id": blueTeam[0].championId}).name;
+    const blueTeamHighestKDAChamp = blueTeam && blueTeam[0].championId && this.findWhere(this.champData, {"id": blueTeam[0].championId}).name;
     
     const blueTeamLowestKDA = blueTeam && blueTeam[blueTeam.length - 1] && blueTeam[blueTeam.length - 1].kda;
     const blueTeamLowestKDAName = blueTeam && blueTeam[blueTeam.length - 1] && blueTeam[blueTeam.length - 1].playerName;
-    const blueTeamLowestKDAChamp = blueTeam && blueTeam[blueTeam.length - 1].championId && this.findwhere(this.champData, {"id": blueTeam[blueTeam.length - 1].championId}).name;
+    const blueTeamLowestKDAChamp = blueTeam && blueTeam[blueTeam.length - 1].championId && this.findWhere(this.champData, {"id": blueTeam[blueTeam.length - 1].championId}).name;
     
     const redTeamHighestKDAName = redTeam && redTeam[0] && redTeam[0].playerName;
     const redTeamHighestKDA = redTeam && redTeam[0] && redTeam[0].kda;
-    const redTeamHighestKDAChamp = redTeam && redTeam[0].championId && this.findwhere(this.champData, {"id": redTeam[0].championId}).name;
+    const redTeamHighestKDAChamp = redTeam && redTeam[0].championId && this.findWhere(this.champData, {"id": redTeam[0].championId}).name;
     
     const redTeamLowestKDA = redTeam && redTeam[redTeam.length - 1] && redTeam[redTeam.length - 1].kda;
     const redTeamLowestKDAName = redTeam && redTeam[redTeam.length - 1] && redTeam[redTeam.length - 1].playerName;
-    const redTeamLowestKDAChamp = redTeam && redTeam[redTeam.length - 1].championId && this.findwhere(this.champData, {"id": redTeam[redTeam.length - 1].championId}).name;
+    const redTeamLowestKDAChamp = redTeam && redTeam[redTeam.length - 1].championId && this.findWhere(this.champData, {"id": redTeam[redTeam.length - 1].championId}).name;
 
     const currentPlayerKDA = currentPlayerStats && currentPlayerStats[0] && currentPlayerStats[0].kda;
     const currentPlayerName = currentPlayerStats && currentPlayerStats[0] && currentPlayerStats[0].playerName;
-    const currentPlayerChamp = currentPlayerStats && currentPlayerStats[0] && this.findwhere(this.champData, {"id": currentPlayerStats[0].championId}).name;
+    const currentPlayerChamp = currentPlayerStats && currentPlayerStats[0] && this.findWhere(this.champData, {"id": currentPlayerStats[0].championId}).name;
 
     this.setState({
       blueTeamHighestKDAPlayer: {
@@ -196,7 +198,7 @@ class App extends Component {
           <input className="name-field__text-box" type="text" value={this.state.value} onChange={this.handleChange} />
         </form>
         <h1>Last match for: {currentPlayer && currentPlayer.currentPlayerName}</h1>
-        <div className="stats-list stats-list--player">
+        <div className="stats-list stats-list--current-player">
           <PlayerBox
             title={'Your Stats'}
             kda={currentPlayer && currentPlayer.currentPlayerKDA} 

@@ -44,14 +44,13 @@ h1 {
   grid-gap: 1em;
 }
 
-.stats-list--player {
+.stats-list--current-player {
   grid-template-columns: 1fr 2fr 1fr;
 }
 
-.stats-list--player .stats-list__box {
+.stats-list--current-player .stats-list__box {
   grid-column-start: 2;
 }
-
 
 .stats-list__box {
   border: solid 1px white;
