@@ -194,7 +194,6 @@ class App extends Component {
       <div className="App">
         <form className="name-field" onSubmit={this.handleSubmit}>
           <input className="name-field__text-box" type="text" value={this.state.value} onChange={this.handleChange} />
-          {/* <input type="submit" value="Submit"/>  */}
         </form>
         <h1>Last match for: {currentPlayer && currentPlayer.currentPlayerName}</h1>
         <div className="stats-list stats-list--player">
