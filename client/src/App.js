@@ -17,7 +17,7 @@ class App extends Component {
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.calculateGame = this.calculateGame.bind(this);
-    this.getTeamStats = this.getTeamStats.bind(this);
+    this.getSortedTeamStats = this.getSortedTeamStats.bind(this);
   }
 
   componentDidMount() {
@@ -36,7 +36,7 @@ class App extends Component {
     // })
   }
 
-  getTeamStats(players, playerStats, side) {
+  getSortedTeamStats(players, playerStats, side) {
     const team = players.slice(
       (side === 'blue') ? 0 : players.length / 2, 
       (side === 'blue') ? players.length / 2 : players.length,
@@ -54,7 +54,7 @@ class App extends Component {
       newTeam.push(combinedPlayerData);
     }
 
-    return newTeam;
+    return newTeam.sort((a, b) => Number(a.kda) < Number(b.kda));
   }
 
   calculateGame() {
@@ -86,7 +86,6 @@ class App extends Component {
       const assists = playerStats.assists;
       const kda = parseFloat((kills + assists) / (deaths || 1)).toFixed(2);
 
-
       return {
         championId,
         participantId,
@@ -94,13 +93,25 @@ class App extends Component {
       }
     });
 
-    console.log('allPlayerStats: ', allPlayerStats);
-    console.log('allPlayerNames: ', allPlayerNames);
+    const blueTeam = this.getSortedTeamStats(allPlayerNames, allPlayerStats, 'blue');
+    const redTeam = this.getSortedTeamStats(allPlayerNames, allPlayerStats, 'red');
 
-    const blueTeamStats = this.getTeamStats(allPlayerNames, allPlayerStats, 'blue');
-    const redTeamStats = this.getTeamStats(allPlayerNames, allPlayerStats, 'red');
-    console.log('highBlue: ', blueTeamStats);
-    console.log('highred: ', redTeamStats);
+    const blueTeamHighestKDAName = blueTeam[0] && blueTeam[0].playerName;
+    const blueTeamHighestKDA = blueTeam[0] && blueTeam[0].kda;
+    const blueTeamHighestKDAChamp = blueTeam[0].championId && this.findwhere(Object.values(champ.champ), {"id": blueTeam[0].championId}).name;
+    
+    const blueTeamLowestKDA = blueTeam[blueTeam.length - 1] && blueTeam[blueTeam.length - 1].kda;
+    const blueTeamLowestKDAName = blueTeam[blueTeam.length - 1] && blueTeam[blueTeam.length - 1].playerName;
+    const blueTeamLowestKDAChamp = blueTeam[blueTeam.length - 1].championId && this.findwhere(Object.values(champ.champ), {"id": blueTeam[blueTeam.length - 1].championId}).name;
+    
+    const redTeamHighestKDAName = redTeam[0] && redTeam[0].playerName;
+    const redTeamHighestKDA = redTeam[0] && redTeam[0].kda;
+    const redTeamHighestKDAChamp = redTeam[0].championId && this.findwhere(Object.values(champ.champ), {"id": redTeam[0].championId}).name;
+    
+    const redTeamLowestKDA = redTeam[redTeam.length - 1] && redTeam[redTeam.length - 1].kda;
+    const redTeamLowestKDAName = redTeam[redTeam.length - 1] && redTeam[redTeam.length - 1].playerName;
+    const redTeamLowestKDAChamp = redTeam[redTeam.length - 1].championId && this.findwhere(Object.values(champ.champ), {"id": redTeam[redTeam.length - 1].championId}).name;
+
 
     // should be 10 because 10 players
     const participantsLength = matchParticipantsStats && matchParticipantsStats.length;
@@ -118,6 +129,29 @@ class App extends Component {
 
       return pName === playerName;  
     });
+
+    console.log('currentPlayerInfo: ', currentPlayerInfo);
+    let getCurrentPlayerStats;
+
+    if (currentPlayerInfo[0].participantId < 5) {
+      getCurrentPlayerStats = blueTeam.filter((stats) => {
+        return stats.participantId === currentPlayerInfo[0].participantId
+      });
+    } else {
+      getCurrentPlayerStats = redTeam.filter((stats) => {
+        return stats.participantId === currentPlayerInfo[0].participantId
+      });
+    }
+
+    console.log('getCurrentPlayerStats: ', getCurrentPlayerStats);
+
+    // if(currentPlayerInfo[0].player.summonerName === )
+
+    // if (playerName === currentPlayerInfo[0].player.summonerName) {
+    //   currentPlayerKDA = parseFloat(kda).toFixed(2);
+    //   currentPlayerName = playerName;
+    //   currentPlayerChampionId = championId;
+    // }
 
     // team 1 highest
     let t1HighestKDA = 0;
@@ -202,26 +236,27 @@ class App extends Component {
     let t2LowestKDAChamp = t2LowestKDAChampionId && this.findwhere(Object.values(champ.champ), {"id": t2LowestKDAChampionId}).name;
     let currentPlayerChamp = currentPlayerChampionId && this.findwhere(Object.values(champ.champ), {"id": currentPlayerChampionId}).name;
 
+
     this.setState({
       t1HighestKDAPlayer: {
-        t1HighestKDA,
-        t1HighestKDAChamp,
-        t1HighestKDAPlayerName,
+        blueTeamHighestKDA,
+        blueTeamHighestKDAChamp,
+        blueTeamHighestKDAName,
       },
       t2HighestKDAPlayer: {
-        t2HighestKDA,
-        t2HighestKDAChamp,
-        t2HighestKDAPlayerName,
+        redTeamHighestKDA,
+        redTeamHighestKDAChamp,
+        redTeamHighestKDAName,
       },
       t1LowestKDAPlayer: {
-        t1LowestKDA,
-        t1LowestKDAChamp,
-        t1LowestKDAPlayerName,
+        blueTeamLowestKDA,
+        blueTeamLowestKDAChamp,
+        blueTeamLowestKDAName,
       },
       t2LowestKDAPlayer: {
-        t2LowestKDA,
-        t2LowestKDAChamp,
-        t2LowestKDAPlayerName,
+        redTeamLowestKDA,
+        redTeamLowestKDAChamp,
+        redTeamLowestKDAName,
       },
       currentPlayer: {
         currentPlayerKDA,
@@ -273,17 +308,17 @@ class App extends Component {
           <PlayerBox
             title={'Best Performing Player'}
             team={'team1'}
-            kda={t1Highest && t1Highest.t1HighestKDA} 
-            name={t1Highest && t1Highest.t1HighestKDAPlayerName}
-            champion={t1Highest && t1Highest.t1HighestKDAChamp}
+            kda={t1Highest && t1Highest.blueTeamHighestKDA} 
+            name={t1Highest && t1Highest.blueTeamHighestKDAName}
+            champion={t1Highest && t1Highest.blueTeamHighestKDAChamp}
           />
 
           <PlayerBox
             title={'Worst Performing Player'}
             team={'team1'}
-            kda={t1Lowest && t1Lowest.t1LowestKDA} 
-            name={t1Lowest && t1Lowest.t1LowestKDAPlayerName}
-            champion={t1Lowest && t1Lowest.t1LowestKDAChamp}
+            kda={t1Lowest && t1Lowest.blueTeamLowestKDA} 
+            name={t1Lowest && t1Lowest.blueTeamLowestKDAName}
+            champion={t1Lowest && t1Lowest.blueTeamLowestKDAChamp}
           />
 
           <PlayerBox
@@ -300,17 +335,17 @@ class App extends Component {
           <PlayerBox
             title={'Best Performing Player'}
             team={'team1'}
-            kda={t2Highest && t2Highest.t2HighestKDA} 
-            name={t2Highest && t2Highest.t2HighestKDAPlayerName}
-            champion={t2Highest && t2Highest.t2HighestKDAChamp}
+            kda={t2Highest && t2Highest.redTeamHighestKDA} 
+            name={t2Highest && t2Highest.redTeamHighestKDAName}
+            champion={t2Highest && t2Highest.redTeamHighestKDAChamp}
           />
 
           <PlayerBox
             title={'Worst Performing Player'}
             team={'team1'}
-            kda={t2Lowest && t2Lowest.t2LowestKDA} 
-            name={t2Lowest && t2Lowest.t2LowestKDAPlayerName}
-            champion={t2Lowest && t2Lowest.t2LowestKDAChamp}
+            kda={t2Lowest && t2Lowest.redTeamLowestKDA} 
+            name={t2Lowest && t2Lowest.redTeamLowestKDAName}
+            champion={t2Lowest && t2Lowest.redTeamLowestKDAChamp}
           />
         </div>
       </div>
